@@ -23,9 +23,7 @@ class ImagesService() {
 
         try {
             cgne(csv).also {
-                if (it != null) {
-                    saveImage(it, size, "$documentNumber.png")
-                }
+                saveImage(it, size, "$documentNumber.png")
             }
         } catch (e: Exception) {
             logger.error { "Could not process sign and save image" }
