@@ -1,0 +1,18 @@
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        csv.enabled false
+        html.enabled = true
+    }
+    afterEvaluate {
+        classDirectories.from = files(classDirectories.files.collect {
+            fileTree(dir: it,
+                    exclude: [
+                            'br/com/utfpr/images/rebuild/by/sign/Application*'
+                    ])
+        })
+    }
+}
+
+jacocoTestReport.dependsOn test
+check.dependsOn jacocoTestReport

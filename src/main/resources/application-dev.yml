@@ -1,0 +1,37 @@
+server:
+  port: ${ENV_PORT:9080}
+  servlet:
+    contextPath: ${ENV_CTX_PATH:/images-rebuild-by-sign}
+
+spring:
+  boot:
+    admin:
+      client:
+        url: ${ENV_SBA_BASE_URL:http://localhost:9080/sba}
+        username: admin
+        password: admin
+        enabled: ${ENV_SBA_ACTIVE:false}
+        instance:
+          name: ${spring.application.name}
+          prefer-ip: true
+  application:
+    name: images-rebuild-by-sign
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - loggers
+  endpoint:
+    health:
+      show-details: always
+
+http:
+  timeout: ${ENV_HTTP_TIMEOUT:10}
+  debug: ${ENV_HTTP_DEBUG:false}
+
+springdoc:
+  packagesToScan: br.com.utfpr.images.rebuild.by.sign.controller
+  pathsToMatch: /**

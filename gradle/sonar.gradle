@@ -1,0 +1,8 @@
+sonarqube {
+    properties {
+        property "sonar.projectKey", "utfpr-csm30:${project.name}"
+        property 'sonar.coverage.exclusions',
+                "**/client/*, **/config/*, **/controller/*, **/exception/*, **/model/**, **/Application*"
+    }
+}
+project.tasks["sonarqube"].dependsOn jacocoTestReport

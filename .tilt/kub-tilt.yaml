@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: images-rebuild-by-sign
+  labels:
+    app: images-rebuild-by-sign
+spec:
+  selector:
+    matchLabels:
+      app: images-rebuild-by-sign
+  template:
+    metadata:
+      labels:
+        app: images-rebuild-by-sign
+    spec:
+      hostNetwork: true
+      containers:
+        - name: images-rebuild-by-sign
+          image: images-rebuild-by-sign-image
+          env:
+            - name: ENV
+              value: dev
+            - name: JAVA_OPTS
+              value: >-
+                -Duser.timezone=America/Sao_Paulo -Dfile.encoding=UTF8 -Xms512m -Xmx512m
