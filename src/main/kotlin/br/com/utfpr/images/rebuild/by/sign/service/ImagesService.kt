@@ -1,5 +1,6 @@
 package br.com.utfpr.images.rebuild.by.sign.service
 
+import br.com.utfpr.images.rebuild.by.sign.util.FILE_PATH
 import br.com.utfpr.images.rebuild.by.sign.util.cgne
 import br.com.utfpr.images.rebuild.by.sign.util.saveImage
 import mu.KotlinLogging
@@ -7,11 +8,11 @@ import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 
 @Service
-class ImagesService() {
+class ImagesService {
     private val logger = KotlinLogging.logger {}
 
     fun getImages(): String {
-        return "TILT test"
+        return FILE_PATH
     }
 
     fun processSign(

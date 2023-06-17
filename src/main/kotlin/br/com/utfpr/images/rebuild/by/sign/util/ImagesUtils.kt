@@ -23,8 +23,6 @@ fun reductionFactor(matrix: RealMatrix): Double {
 fun regularizationCoefficientCalculus(matrix: RealMatrix, array: RealVector): Double {
     return matrix.operate(array).lInfNorm.times(0.10)
 }
-fun errorCalculus() {
-}
 fun readCsvToRealVector(csv: MultipartFile): RealVector {
     val reader = InputStreamReader(csv.inputStream)
     val lines = reader.readLines()

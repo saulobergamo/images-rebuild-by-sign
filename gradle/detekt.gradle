@@ -4,4 +4,10 @@ detekt {
     toolVersion = detektVersion
     input = files("src/main/kotlin")
     config = files("detekt-config.yml")
+    reports {
+        xml {
+            enabled = true
+            destination = file("$buildDir/reports/detekt/detekt.xml")
+        }
+    }
 }
