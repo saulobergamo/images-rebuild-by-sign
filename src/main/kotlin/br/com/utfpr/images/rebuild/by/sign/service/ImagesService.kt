@@ -23,8 +23,6 @@ class ImagesService {
     ): String {
         logger.info { "processSign: processing file uploaded by user=$documentNumber" }
 
-
-
         try {
             cgne2(csv).also {
                 saveImage(it, size, "$documentNumber.png")

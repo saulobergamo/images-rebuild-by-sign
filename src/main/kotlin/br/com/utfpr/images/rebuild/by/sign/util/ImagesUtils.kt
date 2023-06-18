@@ -88,8 +88,6 @@ fun cgne(csv: MultipartFile): ArrayRealVector {
     var residualNorm = r0.norm
 
     while (iteration < MAX_ITERATIONS && residualNorm > TOLERANCE) {
-
-
         val transposeMatrix = matrix.operate(p)
         val alpha = r0.getEntry(iteration).div((transposeMatrix.dotProduct(transposeMatrix)))
         f0.combineToSelf(1.0, alpha, p)
@@ -106,34 +104,33 @@ fun cgne(csv: MultipartFile): ArrayRealVector {
     return f0
 }
 
-
 fun cgne2(csv: MultipartFile): RealVector {
     val realVector = readCsvToRealVector(csv)
     val matrix = readCsvToRealMatrix()
     val image = matrix.columnDimension
 
-    val f_i: RealVector = ArrayRealVector(image)
-    val r_i = realVector.subtract(matrix.operate(f_i))
-    val p_i = matrix.transpose().operate(r_i)
+    val f: RealVector = ArrayRealVector(image)
+    val r = realVector.subtract(matrix.operate(f))
+    val p = matrix.transpose().operate(r)
 
     for (i in 0 until image) {
-        val r_d = r_i.copy()
-        val alpha = r_d.ebeMultiply(r_d).getEntry(i).div(p_i.ebeMultiply(p_i).getEntry(i))
+        val r = r.copy()
+        val alpha = r.ebeMultiply(r).getEntry(i).div(p.ebeMultiply(p).getEntry(i))
 
-        f_i.setEntry(i, alpha.times(p_i.getEntry(i)))
-        val h_p = matrix.operate(p_i)
+        f.setEntry(i, alpha.times(p.getEntry(i)))
+        val h = matrix.operate(p)
 
-        r_i.mapSubtractToSelf(h_p.mapMultiply(alpha).getEntry(i))
+        r.mapSubtractToSelf(h.mapMultiply(alpha).getEntry(i))
 
-        val beta = r_i.ebeMultiply(r_i).getEntry(i).div(r_d.ebeMultiply(r_d).getEntry(i))
+        val beta = r.ebeMultiply(r).getEntry(i).div(r.ebeMultiply(r).getEntry(i))
 
-        val erro = abs(r_i.norm - r_d.norm)
+        val erro = abs(r.norm - r.norm)
 
         if (erro < TOLERANCE) {
             break
         }
     }
-    return f_i
+    return f
 }
 
 fun saveImage(arrayRealVector: RealVector, size: ImageSize, fileName: String) {
