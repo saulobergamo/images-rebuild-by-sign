@@ -1,7 +1,8 @@
 package br.com.utfpr.images.rebuild.by.sign.service
 
+import br.com.utfpr.images.rebuild.by.sign.enums.ImageSize
 import br.com.utfpr.images.rebuild.by.sign.util.FILE_PATH
-import br.com.utfpr.images.rebuild.by.sign.util.cgne
+import br.com.utfpr.images.rebuild.by.sign.util.cgne2
 import br.com.utfpr.images.rebuild.by.sign.util.saveImage
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
@@ -18,12 +19,14 @@ class ImagesService {
     fun processSign(
         documentNumber: String,
         csv: MultipartFile,
-        size: Int
+        size: ImageSize
     ): String {
         logger.info { "processSign: processing file uploaded by user=$documentNumber" }
 
+
+
         try {
-            cgne(csv).also {
+            cgne2(csv).also {
                 saveImage(it, size, "$documentNumber.png")
             }
         } catch (e: Exception) {

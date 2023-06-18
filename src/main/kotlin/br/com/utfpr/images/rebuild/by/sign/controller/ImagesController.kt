@@ -1,5 +1,6 @@
 package br.com.utfpr.images.rebuild.by.sign.controller
 
+import br.com.utfpr.images.rebuild.by.sign.enums.ImageSize
 import br.com.utfpr.images.rebuild.by.sign.service.ImagesService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -41,7 +42,7 @@ class ImagesController(private val imagesService: ImagesService) {
         @RequestParam csv: MultipartFile,
         @PathVariable @Valid @NotBlank
         documentNumber: String,
-        @RequestParam size: Int
+        @RequestParam size: ImageSize
     ): String {
         logger.info {
             "postSignCSV: processing file uploaded by user=$documentNumber\""
