@@ -1,0 +1,15 @@
+services:
+  activemq:
+    image: rmohr/activemq
+    restart: always
+    ports:
+      - 61616:61616
+      - 8161:8161
+  mongodb:
+    image: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin

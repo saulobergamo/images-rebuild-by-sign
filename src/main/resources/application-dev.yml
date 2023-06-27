@@ -16,6 +16,19 @@ spring:
           prefer-ip: true
   application:
     name: images-rebuild-by-sign
+  data:
+    mongodb:
+      uri: ${ENV_MONGO_URI:mongodb://admin:admin@127.0.0.1:27017/test?authSource=admin&readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false}
+      auto-index-creation: true
+  activemq:
+    broker-url: ${ENV_ACTIVEMQ_URL:tcp://localhost:61616}
+    user: ${ENV_ACTIVEMQ_USER:admin}
+    password: ${ENV_ACTIVEMQ_PASSWORD:admin}
+    send-timeout: ${ENV_ACTIVEMQ_SEND_TIMEOUT:10000}
+    queue:
+      entry-sign: ${ENV_ACTIVEMQ_QUEUE_ENTRY_SIGN:entry-sign}
+    packages:
+      trust-all: true
 
 management:
   endpoints:
