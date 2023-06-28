@@ -15,7 +15,6 @@ build/
 *.ipr
 *.csv
 *.csv#
-*.png
 *.xml
 out/
 !**/src/main/**/out/
