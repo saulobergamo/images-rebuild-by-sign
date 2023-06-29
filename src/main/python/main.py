@@ -89,6 +89,9 @@ def image_reshape(image, sign_type):
 
 
 def cgne(image_id, sign_type, user_name):
+    global v
+    global max_cpu_usage
+
     start_time = time.time()
 
     # r0=g−Hf0
@@ -133,6 +136,8 @@ def cgne(image_id, sign_type, user_name):
     memory = process.memory_info().rss / 1000000
     run_time = time.time() - start_time
 
+    v = False
+
     data = {
         "userName": user_name,
         "imageId": image_id,
@@ -141,7 +146,8 @@ def cgne(image_id, sign_type, user_name):
         "error": error,
         "memory": memory,
         "signType": sign_type,
-        "image": image_array_list
+        "image": image_array_list,
+        "cpu": max_cpu_usage,
     }
 
     #     print(count)
@@ -161,6 +167,9 @@ def cgne(image_id, sign_type, user_name):
 
 
 def cgnr(image_id, sign_type, user_name):
+    global v
+    global max_cpu_usage
+
     start_time = time.time()
     entry_sign = get_sign_from_DB(image_id)
     matrix = load_model_matrix(get_matrix_model_name(sign_type))
@@ -210,6 +219,8 @@ def cgnr(image_id, sign_type, user_name):
     memory = process.memory_info().rss / 1000000
     run_time = time.time() - start_time
 
+    v = False
+
     data = {
         "userName": user_name,
         "imageId": image_id,
@@ -218,7 +229,8 @@ def cgnr(image_id, sign_type, user_name):
         "error": erro,
         "memory": memory,
         "signType": sign_type,
-        "image": image_array_list
+        "image": image_array_list,
+        "cpu": max_cpu_usage,
     }
 
     save_image(data)
@@ -229,9 +241,6 @@ def cgnr(image_id, sign_type, user_name):
 
 
 def main(image_id, sign_type, user_name):
-    global v
-    v = True
-
     t = threading.Thread(target=monitor_cpu_usage)
     t.start()
 
@@ -247,17 +256,20 @@ def main(image_id, sign_type, user_name):
         t2 = threading.Thread(target=cgne, args=(image_id, sign_type, user_name))
         t2.start()
         t2.join()
-    v = False
     t.join()
 
 
 def monitor_cpu_usage():
     global v
+    global max_cpu_usage
+
+    v = True
+    max_cpu_usage = 0
+
     cpu_usage_list_by_second = []
     while v:
         cpu_usage_list_by_second.append(psutil.cpu_percent(interval=0.5))
     max_cpu_usage = max(cpu_usage_list_by_second)
-    print(max_cpu_usage)
 
 
 
