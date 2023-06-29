@@ -32,15 +32,5 @@ class EntrySignListener(
                 "receiveEntrySign: error while parsing message from queue"
             }
         }
-//        val entrySignMessageList = entrySignAsString.split("[")
-//        val userName = entrySignMessageList[0]
-//        logger.info { "receiveEntrySign: entry sign read from queue for $userName" }
-//        val entrySignListDouble = entrySignMessageList[1]
-//            .replace("]\"", "")
-//            .replace(" ","")
-//            .split(",")
-//            .map { it.toDouble() }
-//        val entrySignMessage = EntrySignMessage(userName, entrySignListDouble)
-//        imagesService.processSign(entrySignMessage)
     }
 }

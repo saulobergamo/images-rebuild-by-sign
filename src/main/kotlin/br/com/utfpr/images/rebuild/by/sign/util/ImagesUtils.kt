@@ -19,14 +19,6 @@ import kotlin.math.sqrt
 
 private val logger = KotlinLogging.logger {}
 
-fun reductionFactor(matrix: RealMatrix): Double {
-    return matrix.transpose().multiply(matrix).frobeniusNorm
-}
-
-fun regularizationCoefficientCalculus(matrix: RealMatrix, array: RealVector): Double {
-    return matrix.operate(array).lInfNorm.times(0.10)
-}
-
 fun signalGain(option: Boolean? = true, matrix: RealMatrix): RealMatrix {
     val outputVector = ArrayRealVector()
     if (option == true) {
@@ -49,14 +41,6 @@ fun signalGain(option: Boolean? = true, matrix: RealMatrix): RealMatrix {
     }
     return matrix
 }
-
-fun readCsvToDoubleMatrix(csv: MultipartFile): DoubleMatrix {
-    val reader = InputStreamReader(csv.inputStream)
-    val lines = reader.readLines()
-    val realVector = lines.map { it.toDouble() }.toDoubleArray()
-    return DoubleMatrix(realVector)
-}
-
 fun readCsvToRealVector(csv: MultipartFile): RealVector {
     val reader = InputStreamReader(csv.inputStream)
     val lines = reader.readLines()
@@ -83,55 +67,6 @@ fun readCsvToRealMatrix(): RealMatrix {
         }
     }
     return MATRIX
-}
-
-fun readCsvToDoubleMatrix(): DoubleMatrix {
-    val filePath = Paths.get("src", "main", "resources", "csv/H-1.csv").toString()
-    val lines = File(filePath).readLines()
-    val numRows = lines.size
-    val numCols = lines[0].split(",").size
-
-    val matrixData = DoubleMatrix(numRows, numCols)
-    var index = 0
-    var j = 0
-
-    for ((i, line) in lines.withIndex()) {
-        val values = line.split(",")
-        for ((j, value) in values.withIndex()) {
-            matrixData.put(i, j, value.toDouble())
-        }
-    }
-
-    return matrixData
-}
-
-fun cgne(csv: MultipartFile): ArrayRealVector {
-    val realVector = readCsvToRealVector(csv)
-    val matrix = readCsvToRealMatrix()
-
-    val n = matrix.columnDimension
-    val f0 = ArrayRealVector(n)
-    val r0 = realVector.subtract(matrix.operate(f0))
-    val p = matrix.transpose().operate(r0)
-
-    var iteration = 0
-    var residualNorm = r0.norm
-
-    while (iteration < MAX_ITERATIONS && residualNorm > TOLERANCE) {
-        val transposeMatrix = matrix.operate(p)
-        val alpha = r0.getEntry(iteration).div((transposeMatrix.dotProduct(transposeMatrix)))
-        f0.combineToSelf(1.0, alpha, p)
-        r0.combineToSelf(1.0, -alpha, transposeMatrix)
-
-        val residualNormNew = r0.norm
-        val beta = r0.dotProduct(transposeMatrix) / (transposeMatrix?.dotProduct(transposeMatrix) ?: 1.0)
-        p.combineToSelf(beta, 1.0, p)
-
-        residualNorm = residualNormNew
-        iteration++
-    }
-
-    return f0
 }
 
 fun cgne2(csv: MultipartFile): RealVector {
@@ -197,43 +132,6 @@ fun saveImage(arrayRealVector: DoubleMatrix?, size: Int, fileName: String) {
             "Error while converting to png"
         }
     }
-}
-
-fun cgneJavaToKotlin(modelMatrix: DoubleMatrix?, entrySign: DoubleMatrix?, imageId: Long): DoubleMatrix? {
-    logger.info { "cgneJavaToKotlin: starting CGNE to rebuild image" }
-    // ñ conseguiu obter sinal/modelo
-    if (modelMatrix == null || entrySign == null) {
-        return null
-    }
-    val f = DoubleMatrix.zeros(3600, 1)
-    var norma: Double
-    var normaAux = Double.MAX_VALUE
-    var alfa: Double
-    var beta: Double
-    var aux: Double
-    var i: Int = 0
-    val residue = entrySign.sub(modelMatrix.mmul(f)) // g - H*f
-    var p = modelMatrix.transpose().mmul(residue) // Ht * r0
-    norma = residue.norm2()
-    var aux2: Double
-    while (abs(normaAux - norma) > TOLERANCE) {
-        aux = residue.transpose().mmul(residue)[0]
-        aux2 = p.transpose().mmul(p)[0]
-        alfa = aux.div(aux2) // (Rt*R)/(Pt*P)
-
-        f.put(i, (f[i].plus(p[i].times(alfa)))) // f = f + a*p -> addi (in-place)
-        residue.subi(modelMatrix.mmul(alfa).mmul(p)) // r i+1 = r - a*H*p
-        beta = residue.transpose().mmul(residue)[0] / aux // (Rt*R)/(Rt*R)
-        p = modelMatrix.transpose().mmul(residue).add(p.mmul(beta)) // Ht*r + b*p
-        normaAux = norma // salva norma anterior
-        norma = residue.norm2() // atualiza a norma
-        i++
-        if (i >= 1000) {
-            return p
-        } // limite de iterações
-    }
-    logger.info { "cgneJavaToKotlin: end of image processing and rebuilding" }
-    return p
 }
 
 fun saveImageFromDoubleMatrix(doubleMatrix: DoubleMatrix, size: Int, filePath: String) {

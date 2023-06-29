@@ -15,16 +15,16 @@ PATH = os.path.expanduser("~/utfpr/Desenvolvimento Integrado de Sistemas/images-
 
 def get_sign_from_DB(key):
     client = pymongo.MongoClient("mongodb://admin:admin@localhost:27017/")
-    db = client['test']
+    db = client['BSI-DIS']
     collection = db['entry_sign_to_rebuild_image']
 
     # find one document
-    entry = collection.find_one({"clientId":key})
+    entry = collection.find_one({"imageId":key})
     return entry['entrySignDouble']
 
 def save_image(data):
     client = pymongo.MongoClient("mongodb://admin:admin@localhost:27017/")
-    db = client['test']
+    db = client['BSI-DIS']
     collection = db['image_rebuild']
     collection.insert_one(data)
 
@@ -36,23 +36,25 @@ def normalize(img):
     output = output * img
     return output
 
+def signal_gain(sign_type):
+    N = 64
+    S1 = 794
+    S = 436
 
-def cgne(key):
+    if(sign_type == "true"):
+        S = S1
+
+    gl = 0
+    for c in range(0, S):
+        for l in range(0, N):
+            gamma = 100 + (1 / 20) * l * (l ** 0.5)
+            gl, c = gl, c * gamma
+
+def cgne(key, sign_type, user_name):
     start_time = time.time()
 
     matriz = np.load(PATH + 'pickle/H-1.pickle', allow_pickle=True)
     matriz = np.asarray(matriz, dtype=np.float64)
-
-    # N = 794, S = 64
-    # for c=1 .. N
-    #   for l=1 .. S
-    #       γl=100+1/20∗l∗√l
-    #       gl,c=gl,c∗γl
-    gl = 0
-    for c in range(0, 794):
-        for l in range(0, 64):
-            gamma = 100 + (1 / 20) * l * (l ** 0.5)
-            gl, c = gl, c * gamma
 
     # r0=g−Hf0
     # r = np.loadtxt(PATH + 'csv/G-1.csv', delimiter=',',
@@ -145,17 +147,6 @@ def cgnr():
     matriz = np.load(PATH + 'pickle/H-1.pickle', allow_pickle=True)
     matriz = np.asarray(matriz, dtype=np.float64)
 
-    # N = 794, S = 64
-    # for c=1 .. N
-    #   for l=1 .. S
-    #       γl=100+1/20∗l∗√l
-    #       gl,c=gl,c∗γl
-    gl = 0
-    for c in range(0, 794):
-        for l in range(0, 64):
-            gamma = 100 + (1 / 20) * l * (l ** 0.5)
-            gl, c = gl, c * gamma
-
     # r0=g−Hf0
     r = np.loadtxt(PATH + 'csv/G-2.csv', delimiter=',',
                    dtype=np.float64)
@@ -215,10 +206,13 @@ def cgnr():
     return image, count, run_time
 
 
-def main(key):
-    cgne(key)
+def main(key, sign_type, user_name):
+    cgne(key, sign_type, user_name)
 
 
 if __name__ == '__main__':
-    key = sys.argv[1]
-    main(key)
+    image_id = sys.argv[1]
+    sign_type = sys.argv[2]
+    user_name = sys.argv[3]
+
+    main(image_id, sign_type, user_name)
