@@ -142,7 +142,7 @@ def cgne(image_id, sign_type, user_name):
 
     v = False
 
-    time.sleep(0.01)
+    time.sleep(0.1)
 
     data = {
         "userName": user_name,
@@ -227,7 +227,7 @@ def cgnr(image_id, sign_type, user_name):
 
     v = False
 
-    time.sleep(0.01)
+    time.sleep(0.1)
 
     data = {
         "userName": user_name,
