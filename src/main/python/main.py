@@ -14,7 +14,7 @@ import threading
 PATH = os.path.expanduser("~/utfpr/Desenvolvimento Integrado de Sistemas/images-rebuild-by-sign/src/main/resources/")
 
 
-def get_sign_from_DB(image_id):
+def get_sign_from_db(image_id):
     client = pymongo.MongoClient("mongodb://admin:admin@localhost:27017/")
     db = client['BSI-DIS']
     collection = db['entry_sign_to_rebuild_image']
@@ -49,16 +49,20 @@ def normalize(img):
 
 
 def signal_gain(sign_type):
-    N = 64
-    S1 = 794
-    S = 436
+    # for c=1..N
+    #   for l=1..S
+    #       γl = 100 + 1 / 20∗l∗l√
+    #       gl, c = gl, c∗γl
+    n = 64
+    s1 = 794
+    s = 436
 
-    if (sign_type == "true"):
-        S = S1
+    if sign_type == "true":
+        s = s1
 
     gl = 0
-    for c in range(0, S):
-        for l in range(0, N):
+    for c in range(0, s):
+        for l in range(0, n):
             gamma = 100 + (1 / 20) * l * (l ** 0.5)
             gl, c = gl, c * gamma
 
@@ -95,7 +99,7 @@ def cgne(image_id, sign_type, user_name):
     start_time = time.time()
 
     # r0=g−Hf0
-    entry_sign = get_sign_from_DB(image_id)
+    entry_sign = get_sign_from_db(image_id)
     matrix = load_model_matrix(get_matrix_model_name(sign_type))
 
     # p0=HTr0
@@ -171,7 +175,7 @@ def cgnr(image_id, sign_type, user_name):
     global max_cpu_usage
 
     start_time = time.time()
-    entry_sign = get_sign_from_DB(image_id)
+    entry_sign = get_sign_from_db(image_id)
     matrix = load_model_matrix(get_matrix_model_name(sign_type))
 
     # z0=HTr0
@@ -246,7 +250,7 @@ def main(image_id, sign_type, user_name):
 
     algorithms = ['cgne', 'cgnr']
     algorithm = random.choice(algorithms)
-    if (algorithm == 'cgne'):
+    if algorithm == 'cgne':
         # cgne(image_id, sign_type, user_name)
         t2 = threading.Thread(target=cgne, args=(image_id, sign_type, user_name))
         t2.start()
@@ -270,7 +274,6 @@ def monitor_cpu_usage():
     while v:
         cpu_usage_list_by_second.append(psutil.cpu_percent(interval=0.5))
     max_cpu_usage = max(cpu_usage_list_by_second)
-
 
 
 if __name__ == '__main__':
