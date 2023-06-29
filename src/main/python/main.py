@@ -142,6 +142,8 @@ def cgne(image_id, sign_type, user_name):
 
     v = False
 
+    time.sleep(0.01)
+
     data = {
         "userName": user_name,
         "imageId": image_id,
@@ -225,6 +227,8 @@ def cgnr(image_id, sign_type, user_name):
 
     v = False
 
+    time.sleep(0.01)
+
     data = {
         "userName": user_name,
         "imageId": image_id,
@@ -239,7 +243,7 @@ def cgnr(image_id, sign_type, user_name):
 
     save_image(data)
 
-    final = cv.resize(image, None, fx=10, fy=10, interpolation=cv.INTER_AREA)
+    # final = cv.resize(image, None, fx=10, fy=10, interpolation=cv.INTER_AREA)
 
     # cv.imwrite(PATH + 'images/testecgnr.png', final)
 
