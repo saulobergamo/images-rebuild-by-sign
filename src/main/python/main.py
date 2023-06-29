@@ -9,7 +9,6 @@ import pymongo
 from scipy.ndimage import maximum_filter
 import os
 
-
 PATH = os.path.expanduser("~/utfpr/Desenvolvimento Integrado de Sistemas/images-rebuild-by-sign/src/main/resources/")
 
 
@@ -19,8 +18,9 @@ def get_sign_from_DB(key):
     collection = db['entry_sign_to_rebuild_image']
 
     # find one document
-    entry = collection.find_one({"imageId":key})
+    entry = collection.find_one({"imageId": key})
     return entry['entrySignDouble']
+
 
 def save_image(data):
     client = pymongo.MongoClient("mongodb://admin:admin@localhost:27017/")
@@ -28,20 +28,27 @@ def save_image(data):
     collection = db['image_rebuild']
     collection.insert_one(data)
 
+
 def normalize(img):
     m = np.max(img, axis=1)
-    m = maximum_filter(m, size=5)
-    img_normalized = img / m[:, np.newaxis]
-    output = img_normalized > 0.73
-    output = output * img
-    return output
+    n = np.min(img, axis=1)
+    for i in range(len(img[0])):
+        for j in range(len(img[1])):
+            # if (i + 1) % 5 == 0 and m[i] - n[i] > 18:
+            if m[i] - n[i] > 18:
+                if img[i][j] < 0.8 * m[i]:
+                    img[i][j] = 0
+            else:
+                img[i][j] = 0
+    return img
+
 
 def signal_gain(sign_type):
     N = 64
     S1 = 794
     S = 436
 
-    if(sign_type == "true"):
+    if (sign_type == "true"):
         S = S1
 
     gl = 0
@@ -50,18 +57,22 @@ def signal_gain(sign_type):
             gamma = 100 + (1 / 20) * l * (l ** 0.5)
             gl, c = gl, c * gamma
 
+
 def cgne(key, sign_type, user_name):
     start_time = time.time()
 
-    matriz = np.load(PATH + 'pickle/H-1.pickle', allow_pickle=True)
-    matriz = np.asarray(matriz, dtype=np.float64)
-
     # r0=g−Hf0
-    # r = np.loadtxt(PATH + 'csv/G-1.csv', delimiter=',',
-                #    dtype=np.float64)
     r = get_sign_from_DB(key)
     r = np.array(r, dtype=np.float64)
     r.shape = (r.shape[0], 1)
+
+    if r.shape == (50816, 1):
+        matriz_name = 'H-1'
+    else:
+        matriz_name = 'H-2'
+
+    matriz = np.load(PATH + f'pickle/{matriz_name}.pickle', allow_pickle=True)
+    matriz = np.asarray(matriz, dtype=np.float64)
 
     # p0=HTr0
     p = np.matmul(matriz.T, r)
@@ -98,22 +109,22 @@ def cgne(key, sign_type, user_name):
     image = image / image.max()
     image = image * 255
 
-    image = image.reshape((60, 60), order='F')
+    if matriz_name == 'H-1':
+        image = image.reshape((60, 60), order='F')
+    else:
+        image = image.reshape((30, 30), order='F')
 
-    # normalization
-    # image = normalize(image)
+    normalized_image = normalize(image)
 
-    a = normalize(image)
+    # Mostra a imagem gerada
+    #     plt.imshow(normalized_image, cmap='gray')
+    #     plt.title('Log')
+    #     plt.show()
 
-# Mostra a imagem gerada
-#     plt.imshow(a, cmap='gray')
-#     plt.title('Log')
-#     plt.show()
-
-    final = cv.resize(image, None, fx=10, fy=10, interpolation=cv.INTER_AREA)
+    # final = cv.resize(image, None, fx=10, fy=10, interpolation=cv.INTER_AREA)
 
     run_time = time.time() - start_time
-    image_array_list = image.tolist()
+    image_array_list = normalized_image.tolist()
     process = psutil.Process()
     memory = process.memory_info().rss / 1000000
 
@@ -124,18 +135,18 @@ def cgne(key, sign_type, user_name):
         "error": erro,
         "memory": memory,
         "image": image_array_list,
-#         "process": process,
+        #         "process": process,
     }
 
-#     print(count)
-#     print(run_time)
-#     print(str(memory) + " MB")
-#     print(erro)
-#     plt.imshow(image, cmap='gray')
-#     plt.title('Log')
-#     plt.show()
-    # Salvar imagem localmente
-#     cv.imwrite(PATH+ 'images/teste2.png', final)
+    #     print(count)
+    #     print(run_time)
+    #     print(str(memory) + " MB")
+    #     print(erro)
+    #     plt.imshow(image, cmap='gray')
+    #     plt.title('Log')
+    #     plt.show()
+    # # Salvar imagem localmente
+    #     cv.imwrite(PATH+ 'images/teste2.png', final)
 
     # Salvar imagem no banco MONGODB
     save_image(data)
