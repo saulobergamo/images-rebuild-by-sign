@@ -271,6 +271,7 @@ const val ONE = 1
 const val TWENTY = 20
 const val HUNDRED = 100
 const val FILE_PATH = "src/main/resources/"
+const val PYTHON_PATH = "src/main/python/main.py"
 val MATRIX: RealMatrix = Array2DRowRealMatrix(
     arrayOf(
         doubleArrayOf(1.0, 1.0),

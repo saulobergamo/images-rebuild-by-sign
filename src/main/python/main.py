@@ -1,10 +1,32 @@
+import base64
+import sys
 import numpy as np
 import cv2 as cv
 import time
 import matplotlib.pyplot as plt
 import psutil
+import pymongo
 from scipy.ndimage import maximum_filter
+import os
 
+
+PATH = os.path.expanduser("~/utfpr/Desenvolvimento Integrado de Sistemas/images-rebuild-by-sign/src/main/resources/")
+
+
+def get_sign_from_DB(key):
+    client = pymongo.MongoClient("mongodb://admin:admin@localhost:27017/")
+    db = client['test']
+    collection = db['entry_sign_to_rebuild_image']
+
+    # find one document
+    entry = collection.find_one({"clientId":key})
+    return entry['entrySignDouble']
+
+def save_image(data):
+    client = pymongo.MongoClient("mongodb://admin:admin@localhost:27017/")
+    db = client['test']
+    collection = db['image_rebuild']
+    collection.insert_one(data)
 
 def normalize(img):
     m = np.max(img, axis=1)
@@ -15,10 +37,10 @@ def normalize(img):
     return output
 
 
-def cgne():
+def cgne(key):
     start_time = time.time()
 
-    matriz = np.load("C:\\Users\\henri\\Documents\\GitHub\\DIS2\\Modelo 1\\H-1.pickle", allow_pickle=True)
+    matriz = np.load(PATH + 'pickle/H-1.pickle', allow_pickle=True)
     matriz = np.asarray(matriz, dtype=np.float64)
 
     # N = 794, S = 64
@@ -27,14 +49,16 @@ def cgne():
     #       γl=100+1/20∗l∗√l
     #       gl,c=gl,c∗γl
     gl = 0
-    for i in range(0, 794):
+    for c in range(0, 794):
         for l in range(0, 64):
             gamma = 100 + (1 / 20) * l * (l ** 0.5)
             gl, c = gl, c * gamma
 
     # r0=g−Hf0
-    r = np.loadtxt('C:\\Users\\henri\\Documents\\GitHub\\DIS2\\Modelo 1\\Sinal\\G-1.csv', delimiter=',',
-                   dtype=np.float64)
+    # r = np.loadtxt(PATH + 'csv/G-1.csv', delimiter=',',
+                #    dtype=np.float64)
+    r = get_sign_from_DB(key)
+    r = np.array(r, dtype=np.float64)
     r.shape = (r.shape[0], 1)
 
     # p0=HTr0
@@ -79,34 +103,46 @@ def cgne():
 
     a = normalize(image)
 
-    plt.imshow(a, cmap='gray')
-    plt.title('Log')
-    plt.show()
+# Mostra a imagem gerada
+#     plt.imshow(a, cmap='gray')
+#     plt.title('Log')
+#     plt.show()
 
     final = cv.resize(image, None, fx=10, fy=10, interpolation=cv.INTER_AREA)
 
-    cv.imwrite('teste2.png', final)
-
     run_time = time.time() - start_time
-
-    print(count)
-    print(run_time)
-
+    image_array_list = image.tolist()
     process = psutil.Process()
     memory = process.memory_info().rss / 1000000
-    print(str(memory) + " MB")
 
-    print(erro)
+    data = {
+        "clientId": key,
+        "iterations": count,
+        "runTime": run_time,
+        "error": erro,
+        "memory": memory,
+        "image": image_array_list,
+#         "process": process,
+    }
 
-    plt.imshow(image, cmap='gray')
-    plt.title('Log')
-    plt.show()
+#     print(count)
+#     print(run_time)
+#     print(str(memory) + " MB")
+#     print(erro)
+#     plt.imshow(image, cmap='gray')
+#     plt.title('Log')
+#     plt.show()
+    # Salvar imagem localmente
+#     cv.imwrite(PATH+ 'images/teste2.png', final)
+
+    # Salvar imagem no banco MONGODB
+    save_image(data)
 
 
 def cgnr():
     start_time = time.time()
 
-    matriz = np.load("C:\\Users\\henri\\Documents\\GitHub\\DIS2\\Modelo 1\\H-1.pickle", allow_pickle=True)
+    matriz = np.load(PATH + 'pickle/H-1.pickle', allow_pickle=True)
     matriz = np.asarray(matriz, dtype=np.float64)
 
     # N = 794, S = 64
@@ -121,7 +157,7 @@ def cgnr():
             gl, c = gl, c * gamma
 
     # r0=g−Hf0
-    r = np.loadtxt('C:\\Users\\henri\\Documents\\GitHub\\DIS2\\Modelo 1\\Sinal\\G-2.csv', delimiter=',',
+    r = np.loadtxt(PATH + 'csv/G-2.csv', delimiter=',',
                    dtype=np.float64)
     r.shape = (r.shape[0], 1)
 
@@ -171,7 +207,7 @@ def cgnr():
 
     final = cv.resize(image, None, fx=10, fy=10, interpolation=cv.INTER_AREA)
 
-    cv.imwrite('testecgnr.png', final)
+    cv.imwrite(PATH + 'images/testecgnr.png', final)
     run_time = time.time() - start_time
     print(count)
     print(run_time)
@@ -179,9 +215,10 @@ def cgnr():
     return image, count, run_time
 
 
-def main():
-    cgne()
+def main(key):
+    cgne(key)
 
 
 if __name__ == '__main__':
-    main()
+    key = sys.argv[1]
+    main(key)

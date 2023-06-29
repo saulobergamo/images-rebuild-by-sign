@@ -16,6 +16,7 @@ build/
 *.csv
 *.csv#
 *.xml
+*.pickle
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/

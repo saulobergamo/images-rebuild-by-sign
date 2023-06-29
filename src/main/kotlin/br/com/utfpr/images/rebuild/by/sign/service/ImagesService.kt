@@ -4,7 +4,7 @@ import br.com.utfpr.images.rebuild.by.sign.model.EntrySignMessage
 import br.com.utfpr.images.rebuild.by.sign.model.entity.EntrySign
 import br.com.utfpr.images.rebuild.by.sign.python.PythonWrapper
 import br.com.utfpr.images.rebuild.by.sign.repositories.EntrySignRepository
-import br.com.utfpr.images.rebuild.by.sign.util.FILE_PATH
+import br.com.utfpr.images.rebuild.by.sign.util.PYTHON_PATH
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
 
@@ -24,7 +24,7 @@ class ImagesService(
 
         entrySignRepository.save(prepareData(entrySignMessage))
 
-        pythonWrapper.executePythonScriptAsProcess(FILE_PATH.plus("scripts/cgne.py"), entrySignMessage.clientId)
+        pythonWrapper.executePythonScriptAsProcess(PYTHON_PATH, entrySignMessage.clientId)
     }
 
     private fun prepareData(entrySignMessage: EntrySignMessage) = EntrySign(
