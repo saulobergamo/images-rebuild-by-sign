@@ -9,6 +9,7 @@ import psutil
 import pymongo
 from scipy.ndimage import maximum_filter
 import os
+import threading
 
 PATH = os.path.expanduser("~/utfpr/Desenvolvimento Integrado de Sistemas/images-rebuild-by-sign/src/main/resources/")
 
@@ -61,17 +62,20 @@ def signal_gain(sign_type):
             gamma = 100 + (1 / 20) * l * (l ** 0.5)
             gl, c = gl, c * gamma
 
+
 def load_model_matrix(matrix_name):
     matrix = np.load(PATH + f'pickle/{matrix_name}.pickle', allow_pickle=True)
     matrix = np.asarray(matrix, dtype=np.float64)
     return matrix
+
 
 def get_matrix_model_name(sign_type):
     if sign_type == 'true':
         matriz_name = 'H-1'
     else:
         matriz_name = 'H-2'
-    return matriz_name 
+    return matriz_name
+
 
 def image_reshape(image, sign_type):
     image = image - image.min()
@@ -82,6 +86,7 @@ def image_reshape(image, sign_type):
     else:
         image = image.reshape((30, 30), order='F')
     return image
+
 
 def cgne(image_id, sign_type, user_name):
     start_time = time.time()
@@ -98,7 +103,7 @@ def cgne(image_id, sign_type, user_name):
 
     count = 1
     error = 0
-    while error < float(1e10**(-4)):
+    while error < float(1e10 ** (-4)):
         # αi=rTiripTipi
         alpha = np.dot(entry_sign.T, entry_sign) / np.dot(p.T, p)
 
@@ -121,14 +126,13 @@ def cgne(image_id, sign_type, user_name):
 
         count += 1
 
-
     image = image_reshape(image, sign_type)
     normalized_image = normalize(image)
     image_array_list = normalized_image.tolist()
     process = psutil.Process()
     memory = process.memory_info().rss / 1000000
     run_time = time.time() - start_time
-    
+
     data = {
         "userName": user_name,
         "imageId": image_id,
@@ -155,6 +159,7 @@ def cgne(image_id, sign_type, user_name):
     # Salvar imagem no banco MONGODB
     save_image(data)
 
+
 def cgnr(image_id, sign_type, user_name):
     start_time = time.time()
     entry_sign = get_sign_from_DB(image_id)
@@ -169,7 +174,7 @@ def cgnr(image_id, sign_type, user_name):
 
     count = 1
     erro = 0
-    while erro < 1e10**(-4):
+    while erro < 1e10 ** (-4):
         # wi=Hpi
         w = np.matmul(matrix, p)
 
@@ -193,7 +198,7 @@ def cgnr(image_id, sign_type, user_name):
 
         # ϵ=||ri+1||2−||ri||2
         erro = np.linalg.norm(ri, ord=2) - np.linalg.norm(entry_sign, ord=2)
-        if erro < 1e10**(-4):
+        if erro < 1e10 ** (-4):
             break
 
         count += 1
@@ -204,7 +209,7 @@ def cgnr(image_id, sign_type, user_name):
     process = psutil.Process()
     memory = process.memory_info().rss / 1000000
     run_time = time.time() - start_time
-    
+
     data = {
         "userName": user_name,
         "imageId": image_id,
@@ -222,14 +227,38 @@ def cgnr(image_id, sign_type, user_name):
 
     # cv.imwrite(PATH + 'images/testecgnr.png', final)
 
+
 def main(image_id, sign_type, user_name):
+    global v
+    v = True
+
+    t = threading.Thread(target=monitor_cpu_usage)
+    t.start()
 
     algorithms = ['cgne', 'cgnr']
     algorithm = random.choice(algorithms)
-    if(algorithm == 'cgne'):
-        cgne(image_id, sign_type, user_name)
+    if (algorithm == 'cgne'):
+        # cgne(image_id, sign_type, user_name)
+        t2 = threading.Thread(target=cgne, args=(image_id, sign_type, user_name))
+        t2.start()
+        t2.join()
     else:
-        cgnr(image_id, sign_type, user_name)
+        # cgnr(image_id, sign_type, user_name)
+        t2 = threading.Thread(target=cgne, args=(image_id, sign_type, user_name))
+        t2.start()
+        t2.join()
+    v = False
+    t.join()
+
+
+def monitor_cpu_usage():
+    global v
+    cpu_usage_list_by_second = []
+    while v:
+        cpu_usage_list_by_second.append(psutil.cpu_percent(interval=0.5))
+    max_cpu_usage = max(cpu_usage_list_by_second)
+    print(max_cpu_usage)
+
 
 
 if __name__ == '__main__':
