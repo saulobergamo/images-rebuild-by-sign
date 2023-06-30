@@ -48,6 +48,9 @@ def normalize(img, signal):
             treshold = 1
             difference = 37
             skip = -1
+        treshold = 1
+        difference = 45
+        skip = -1
     else:
         if signal[80] == 14900:
             treshold = 1
@@ -151,15 +154,16 @@ def cgne(image_id, sign_type, user_name, algorithm):
         count += 1
 
     v = False
-    time.sleep(0.25)
+    time.sleep(0.25)  
 
     image = image_reshape(image, sign_type)
     normalized_image = normalize(image, entry_sign)
-    image_array_list = normalized_image.tolist()
+    # image_array_list = normalized_image.tolist()
+    image_array_list = image.tolist()
     process = psutil.Process()
     memory = process.memory_info().rss / 1000000
     run_time = time.time() - start_time
-    
+ 
     data = {
         "userName": user_name,
         "imageId": image_id,
@@ -173,14 +177,6 @@ def cgne(image_id, sign_type, user_name, algorithm):
         "image": image_array_list
     }
     memory = process.memory_info().rss / 1000000
-#     print(str(memory) + " MB")
-#
-#     print(max_cpu_usage)
-    #     print(count)
-    #     print(run_time)
-    #     print(str(memory) + " MB")
-    #     print(erro)
-    # #   Imprime a imagem gerada
     # plt.imshow(normalized_image, cmap='gray')
     # plt.title('CGNE - Log')
     # plt.show()
@@ -238,7 +234,8 @@ def cgnr(image_id, sign_type, user_name, algorithm):
 
     image = image_reshape(image, sign_type)
     normalized_image = normalize(image, entry_sign)
-    image_array_list = normalized_image.tolist()
+    # image_array_list = normalized_image.tolist()
+    image_array_list = image.tolist()
     process = psutil.Process()
     memory = process.memory_info().rss / 1000000
     run_time = time.time() - start_time
@@ -260,15 +257,8 @@ def cgnr(image_id, sign_type, user_name, algorithm):
         "image": image_array_list
     }
     memory = process.memory_info().rss / 1000000
-#     print(str(memory) + " MB")
-#
-#     print(max_cpu_usage)
     save_image(data)
-    # plt.imshow(normalized_image, cmap='gray')
-    # plt.title('CGNR - Log')
-    # plt.show()
     # final = cv.resize(image, None, fx=10, fy=10, interpolation=cv.INTER_AREA)
-
     # cv.imwrite(PATH + 'images/testecgnr.png', final)
 
 def main(image_id, sign_type, user_name):
