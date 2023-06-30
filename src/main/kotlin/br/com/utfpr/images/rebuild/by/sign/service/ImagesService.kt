@@ -2,7 +2,6 @@ package br.com.utfpr.images.rebuild.by.sign.service
 
 import br.com.utfpr.images.rebuild.by.sign.model.EntrySignMessage
 import br.com.utfpr.images.rebuild.by.sign.python.PythonWrapper
-import br.com.utfpr.images.rebuild.by.sign.util.PYTHON_PATH
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
 
@@ -22,5 +21,8 @@ class ImagesService(
             entrySignMessage.signType,
             entrySignMessage.userName
         )
+    }
+    companion object{
+        const val PYTHON_PATH = "src/main/python/main.py"
     }
 }
