@@ -22,7 +22,7 @@ class ImagesService(
             entrySignMessage.userName
         )
     }
-    companion object{
+    companion object {
         const val PYTHON_PATH = "src/main/python/main.py"
     }
 }
