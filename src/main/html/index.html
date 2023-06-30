@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>Upload e Download de Imagens</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      display: flex;
+      width: 800px;
+      height: 400px;
+    }
+
+    .left-side,
+    .right-side {
+      flex: 1;
+      padding: 20px;
+    }
+
+    .left-side input,
+    .right-side input,
+    .right-side button {
+      margin-bottom: 10px;
+    }
+
+    .image-container {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      height: 200px;
+      width: 200px;
+    }
+
+    .image-container img {
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    .real-image {
+      width: 200px;
+      height: 200px;
+      object-fit: contain;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="left-side">
+      <h2>Upload de Sinal</h2>
+      <input type="text" id="name" placeholder="Nome">
+      <input type="file" id="file">
+      <button onclick="uploadImage()">Upload</button>
+      <div id="responseName"></div>
+      <div id="responseImageId"></div>
+    </div>
+    <div class="right-side">
+      <h2>Download de Imagem</h2>
+      <input type="text" id="imageId" placeholder="ID da Imagem">
+      <button onclick="downloadImage()">Download</button>
+      <div id="userName"></div>
+      <div id="imageId"></div>
+      <div id="iterations"></div>
+      <div id="runTime"></div>
+      <div id="error"></div>
+      <div id="signType"></div>
+      <div id="algortihm"></div>
+      <div id="cpuUsage"></div>
+      <div id="imagePath"></div>
+      <div id="pai-da-imagem" class="image-container"> 
+        <img id="real-image" class="real-image" src="" />
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function uploadImage() {
+      const name = document.getElementById('name').value;
+      const file = document.getElementById('file').files[0];
+      const url = `http://localhost:9085/entry-sign-publisher/images/upload?userName=${encodeURIComponent(name)}`;
+      const formData = new FormData();
+      formData.append('csv', file);
+
+      fetch(url, {
+        method: 'POST',
+        body: formData
+      }).then(response => {
+        return response.json()
+        })
+        .then(data => {
+            alert(`ImageId: ${data.imageId}`)
+            const responseMessage = document.getElementById('responseMessage');
+            responseName.textContent = `Name: ${data.userName}`;
+            responseImageId.textContent = `ImageId: ${data.imageId}`;responseImageId
+        })
+        .catch(error => {
+          console.error('Erro durante o upload:', error);
+        })
+        .finally(() => {
+          console.log('Upload finalizado!');
+          document.getElementById('name').value = ''; // Limpa o campo 'nome'
+          document.getElementById('file').value = ''; // Limpa o campo do arquivo
+          document.getElementById('name').focus(); // Coloca o foco novamente no campo 'nome'
+        });
+    }
+
+    function downloadImage() {
+      const imageId = document.getElementById('imageId').value;
+      const userName = 'Greg Graffin';
+      const url = `http://localhost:9085/entry-sign-publisher/images/download?imageId=${encodeURIComponent(imageId)}&userName=${encodeURIComponent(userName)}`;
+
+      fetch(url)
+        .then(response => {
+             return response.json()
+        })
+        .then(data => {
+            console.log(data)
+            document.getElementById('userName').textContent = `Nome: ${data.userName}`;
+            document.getElementById('imageId').textContent = `ImageId: ${data.imageId}`;
+            document.getElementById('iterations').textContent = `Iterações: ${data.iterations}`;
+            document.getElementById('runTime').textContent = `Tempo de Execução: ${data.runTime}`;
+            document.getElementById('error').textContent = `Erro: ${data.error}`;
+            document.getElementById('signType').textContent = `Tipo de Sinal: ${data.signType}`;
+            document.getElementById('algortihm').textContent = `Algoritmo: ${data.algorithm}`;
+            document.getElementById('cpuUsage').textContent = `Uso da CPU: ${data.cpuUsage}`;
+              // Renderizar a imagem
+            document.getElementById('real-image').src = `data:image/png;base64, ${data.image}`;
+            document.getElementById('pai-da-imagem').style.display = 'flex'
+        })
+        .catch(error => {
+          console.error('Erro durante o download:', error);
+        });
+    }
+  </script>
+</body>
+</html>
